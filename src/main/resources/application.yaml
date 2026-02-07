@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: ielts
+
+server:
+  port: 8081
