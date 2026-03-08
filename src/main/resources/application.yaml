@@ -12,7 +12,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     database-platform: org.hibernate.dialect.MySQLDialect
 
 
@@ -25,3 +25,14 @@ jwt:
   expiration:
     access-token: ${ACCESS_TOKEN_EXPIRATION}
     refresh-token: ${REFRESH_TOKEN_EXPIRATION}
+
+#logging
+logging:
+  level:
+    root: INFO
+    com.ddhva.ielts: DEBUG
+    org.springframework: WARN
+    org.hibernate.SQL: OFF
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: OFF
+  file:
+    name: logs/ielts.log

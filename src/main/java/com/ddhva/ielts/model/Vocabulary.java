@@ -3,11 +3,10 @@ package com.ddhva.ielts.model;
 
 import com.ddhva.ielts.enums.VocabularyStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 
+import java.sql.ConnectionBuilder;
 import java.util.UUID;
 
 @Entity
@@ -16,12 +15,14 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Vocabulary extends Auditing{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String word;
     private String ipa;
+    private String definition;
     private String example;
     private String audio_url;
     private String part_of_speech;
