@@ -1,4 +1,9 @@
 package com.ddhva.ielts.repositories;
 
-public interface QuestionRepository {
+import com.ddhva.ielts.model.Question;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.UUID;
+
+public interface QuestionRepository extends JpaRepository<Question, UUID> {
 }
