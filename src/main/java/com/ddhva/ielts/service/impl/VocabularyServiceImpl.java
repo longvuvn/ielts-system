@@ -21,7 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -130,6 +130,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
+    @Transactional
     public void importExcel(MultipartFile file, String topicId) {
         try{
             UUID topicUUID = UUID.fromString(topicId);
@@ -140,7 +141,7 @@ public class VocabularyServiceImpl implements VocabularyService {
             List<Vocabulary> vocabularies = new ArrayList<>();
             for(Row cells : sheet){
                 if(cells.getRowNum() == 0) continue;
-                final Vocabulary vocabulary = Vocabulary.builder().build();
+                Vocabulary vocabulary = Vocabulary.builder().build();
                 vocabulary.setWord(cells.getCell(1).getStringCellValue());
                 vocabulary.setIpa(cells.getCell(2).getStringCellValue());
                 vocabulary.setPart_of_speech(cells.getCell(3).getStringCellValue());
@@ -151,7 +152,7 @@ public class VocabularyServiceImpl implements VocabularyService {
                 vocabulary.setStatus(VocabularyStatus.ACTIVE);
                 vocabularies.add(vocabulary);
             }
-            log.info("Successfully imported {} vocabularies", vocabularies.size());
+            log.info("Successfully imported {} file excel", vocabularies.size());
             vocabularyRepository.saveAll(vocabularies);
         }catch (Exception e){
             log.error("Error while importing excel file", e);

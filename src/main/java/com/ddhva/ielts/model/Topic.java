@@ -3,10 +3,7 @@ package com.ddhva.ielts.model;
 
 import com.ddhva.ielts.enums.TopicStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +14,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Topic {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
