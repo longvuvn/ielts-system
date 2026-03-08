@@ -32,3 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 insert.sql
+logs/
+*.log
+*.log.*
