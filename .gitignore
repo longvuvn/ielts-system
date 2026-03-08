@@ -35,3 +35,5 @@ insert.sql
 logs/
 *.log
 *.log.*
+skills-lock.json
+.agents/
