@@ -40,3 +40,13 @@ logging:
 dictionary:
   api:
     url: ${API_URL}
+
+scheduler:
+  exam:
+    enabled: true
+    cron: "0 0 3 * * *"
+    base-url: https://ielts-up.com
+    listening-from: 5
+    listening-to: 14
+    reading-from: 1
+    reading-to: 11

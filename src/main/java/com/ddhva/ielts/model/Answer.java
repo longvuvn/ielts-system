@@ -20,6 +20,7 @@ public class Answer extends Auditing{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)
@@ -27,6 +28,8 @@ public class Answer extends Auditing{
 
     @Column(columnDefinition = "TEXT")
     private Boolean is_correct;
+
+
 
     @ManyToOne
     @JoinColumn(name = "question_id")
