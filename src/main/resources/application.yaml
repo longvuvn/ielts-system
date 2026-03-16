@@ -36,3 +36,7 @@ logging:
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: OFF
   file:
     name: logs/ielts.log
+
+dictionary:
+  api:
+    url: ${API_URL}

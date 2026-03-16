@@ -95,4 +95,17 @@ public class VocabularyController {
                 )
         );
     }
+
+
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<VocabularyResponse>> create(@Valid @RequestBody VocabularyRequest request) {
+        VocabularyResponse res = vocabularyService.createVocabulary(request);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.CREATED.value(),
+                        "Create Successfully",
+                        res
+                )
+        );
+    }
 }

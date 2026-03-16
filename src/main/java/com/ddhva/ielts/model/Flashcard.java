@@ -22,14 +22,15 @@ public class Flashcard extends Auditing{
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String title;
+    private String description;
 
     @Enumerated(EnumType.STRING)
     private FlashcardStatus status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "library_id")
     private Library library;
 
     @OneToMany(mappedBy = "flashcard", fetch = FetchType.LAZY)
-    private List<Vocabulary> vocabularies;
+    private List<DeckVocabulary> deckVocabularies;
 }

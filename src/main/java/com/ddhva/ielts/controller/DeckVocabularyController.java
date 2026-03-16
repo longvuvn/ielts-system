@@ -1,0 +1,84 @@
+package com.ddhva.ielts.controller;
+
+import com.ddhva.ielts.dto.deckvocabulary.req.DeckVocabularyRequest;
+import com.ddhva.ielts.dto.deckvocabulary.req.DeckVocabularyUpdateRequest;
+import com.ddhva.ielts.dto.deckvocabulary.res.DeckVocabularyResponse;
+import com.ddhva.ielts.dto.pagination.Pagination;
+import com.ddhva.ielts.service.DeckVocabularyService;
+import com.ddhva.ielts.service.exception.ApiResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/deck-vocabulary")
+@RequiredArgsConstructor
+public class DeckVocabularyController {
+
+    private final DeckVocabularyService deckVocabularyService;
+
+
+    @GetMapping("/flashcard/{flashcardId}")
+    public ResponseEntity<ApiResponse<Pagination<DeckVocabularyResponse>>> getAllByFlashcardId(
+            @PathVariable String flashcardId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        Pagination<DeckVocabularyResponse> response =
+                deckVocabularyService.getAllDeckVocabularyByFlashcardId(flashcardId, page, size);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Get All Successfully",
+                        response
+                )
+        );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<DeckVocabularyResponse>> getById(@PathVariable String id){
+        DeckVocabularyResponse response = deckVocabularyService.getDeckVocabularyById(id);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Get Successfully",
+                        response
+                )
+        );
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<Void>> create(@RequestBody DeckVocabularyRequest request){
+        deckVocabularyService.createDeckVocabulary(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                new ApiResponse<>(
+                        HttpStatus.CREATED.value(),
+                        "Create Successfully"
+                )
+        );
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<DeckVocabularyResponse>> update(@PathVariable String id, @RequestBody DeckVocabularyUpdateRequest request){
+        DeckVocabularyResponse response = deckVocabularyService.updateDeckVocabulary(id, request);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Update Successfully",
+                        response
+                )
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id){
+        deckVocabularyService.deleteDeckVocabulary(id);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Delete Successfully"
+                )
+        );
+    }
+}
