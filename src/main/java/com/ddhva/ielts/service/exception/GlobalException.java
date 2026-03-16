@@ -24,4 +24,15 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "API not found"));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<?>> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("Invalid request at {}: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(
+                        HttpStatus.BAD_REQUEST.value(),
+                        e.getMessage()
+                ));
+    }
 }

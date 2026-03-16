@@ -25,4 +25,12 @@ public interface VocabularyRepository extends JpaRepository <Vocabulary, UUID>{
     AND v.status = "ACTIVE"
 """)
     Optional<Page<Vocabulary>> searchWord(@Param("word") String word, Pageable pageable);
+
+    @Query("""
+    SELECT v
+    FROM Vocabulary v
+    WHERE LOWER(v.word) = LOWER(:word)
+    AND v.status = "ACTIVE"
+""")
+    Optional<Vocabulary> findByWord(String word);
 }

@@ -1,11 +1,7 @@
 package com.ddhva.ielts.model;
 
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -16,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @PrimaryKeyJoinColumn(name = "id")
-public class Learner extends User{
+public class Learner extends User {
     private String phoneNumber;
 
     @OneToMany(mappedBy = "learner", fetch = FetchType.LAZY)

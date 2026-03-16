@@ -1,6 +1,5 @@
 package com.ddhva.ielts.model;
 
-
 import com.ddhva.ielts.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;

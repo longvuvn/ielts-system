@@ -1,12 +1,15 @@
 package com.ddhva.ielts.model;
 
 
+import com.ddhva.ielts.enums.VocabularySource;
 import com.ddhva.ielts.enums.VocabularyStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 
 import java.sql.ConnectionBuilder;
+import java.util.Dictionary;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -30,11 +33,13 @@ public class Vocabulary extends Auditing{
     @Enumerated(EnumType.STRING)
     private VocabularyStatus status;
 
+    @Enumerated(EnumType.STRING)
+    private VocabularySource source;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id")
     private Topic topic;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flashcard_id")
-    private Flashcard flashcard;
+    @OneToMany(mappedBy = "vocabulary", fetch = FetchType.LAZY)
+    private List<DeckVocabulary> deckVocabularies;
 }

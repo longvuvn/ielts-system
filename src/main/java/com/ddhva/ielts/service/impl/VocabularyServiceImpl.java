@@ -3,6 +3,7 @@ package com.ddhva.ielts.service.impl;
 import com.ddhva.ielts.dto.pagination.Pagination;
 import com.ddhva.ielts.dto.vocabulary.req.VocabularyRequest;
 import com.ddhva.ielts.dto.vocabulary.res.VocabularyResponse;
+import com.ddhva.ielts.enums.VocabularySource;
 import com.ddhva.ielts.enums.VocabularyStatus;
 import com.ddhva.ielts.model.Topic;
 import com.ddhva.ielts.model.Vocabulary;
@@ -130,6 +131,23 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
+    public VocabularyResponse createVocabulary(VocabularyRequest request) {
+        Topic topic = topicRepository.findByName("USER-CUSTOM")
+                .orElseThrow(() -> new IllegalArgumentException("Topic not found"));
+        Vocabulary vocabulary = modelMapper.map(request, Vocabulary.class);
+        vocabulary.setTopic(topic);
+        vocabulary.setSource(VocabularySource.LEARNER);
+        vocabulary.setStatus(VocabularyStatus.ACTIVE);
+        vocabulary = vocabularyRepository.save(vocabulary);
+        log.info("Successfully created vocabulary {}", vocabulary.getId());
+        VocabularyResponse res = modelMapper.map(vocabulary, VocabularyResponse.class);
+        if (vocabulary.getTopic() != null) {
+            res.setTopicId(vocabulary.getTopic().getId().toString());
+        }
+        return res;
+    }
+
+    @Override
     @Transactional
     public void importExcel(MultipartFile file, String topicId) {
         try{
@@ -149,6 +167,7 @@ public class VocabularyServiceImpl implements VocabularyService {
                 vocabulary.setExample(cells.getCell(5).getStringCellValue());
                 vocabulary.setAudio_url(cells.getCell(6).getStringCellValue());
                 vocabulary.setTopic(topic);
+                vocabulary.setSource(VocabularySource.SYSTEM);
                 vocabulary.setStatus(VocabularyStatus.ACTIVE);
                 vocabularies.add(vocabulary);
             }

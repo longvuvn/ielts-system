@@ -14,6 +14,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Library extends Auditing{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,6 +24,7 @@ public class Library extends Auditing{
     private String name;
 
     private Boolean is_Public;
+
     private String description;
 
     @Enumerated(EnumType.STRING)

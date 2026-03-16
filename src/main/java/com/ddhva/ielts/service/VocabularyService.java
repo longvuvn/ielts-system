@@ -11,6 +11,7 @@ public interface VocabularyService {
     Pagination<VocabularyResponse> searchVocabulary(String word, int page, int size);
     VocabularyResponse getVocabularyById(String id);
     VocabularyResponse updateVocabulary(String id, VocabularyRequest request);
+    VocabularyResponse createVocabulary(VocabularyRequest request);
     void importExcel(MultipartFile file, String topicId);
     void deleteVocabulary(String id);
 }
