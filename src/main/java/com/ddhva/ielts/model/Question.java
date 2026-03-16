@@ -24,6 +24,7 @@ public class Question extends Auditing{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+    @Column(columnDefinition = "TEXT")
     private String content;
     private String image_url;
     private String audio_url;
@@ -44,6 +45,8 @@ public class Question extends Auditing{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "section_id")
     private Section section;
+
+
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<SubmissionAnswer> submissionAnswers;
