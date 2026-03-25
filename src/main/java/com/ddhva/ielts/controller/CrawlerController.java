@@ -5,9 +5,7 @@ import com.ddhva.ielts.service.exception.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/crawler")
@@ -17,13 +15,42 @@ public class CrawlerController {
     private final ExamCrawlerService examCrawlerService;
 
     @PostMapping("/run")
-    public ResponseEntity<ApiResponse<Void>> run() {
-        examCrawlerService.crawlAndSave();
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        HttpStatus.OK.value(),
-                        "Crawl triggered successfully"
-                )
-        );
+    public ResponseEntity<ApiResponse<Void>> run(@RequestParam(required = false) Integer limit) {
+        try {
+            examCrawlerService.crawlAndSave(limit);
+            return ResponseEntity.ok(
+                    new ApiResponse<>(HttpStatus.OK.value(), "Crawl completed successfully"));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Crawl failed: " + ex.getMessage()));
+        }
+    }
+
+    @PostMapping("/answer-key")
+    public ResponseEntity<ApiResponse<Void>> crawlAnswerKey(@RequestParam String resultsUrl) {
+        try {
+            examCrawlerService.crawlAndUpdateAnswerKey(resultsUrl);
+            return ResponseEntity.ok(
+                    new ApiResponse<>(HttpStatus.OK.value(), "Answer key updated successfully"));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(),
+                            "Failed: " + ex.getMessage()));
+        }
+    }
+
+    @PostMapping("/answer-keys")
+    public ResponseEntity<ApiResponse<Void>> crawlAnswerKeys(
+            @RequestParam(required = false) Integer limit) {
+        try {
+            examCrawlerService.crawlAndUpdateAnswerKeysForExams(limit);
+            return ResponseEntity.ok(
+                    new ApiResponse<>(HttpStatus.OK.value(), "Answer keys updated. Check logs for details."));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Failed: " + ex.getMessage()));
+        }
     }
 }

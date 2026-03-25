@@ -1,20 +1,32 @@
 package com.ddhva.ielts.config;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
-@Configuration
-@ConfigurationProperties(prefix = "scheduler.exam")
-@Getter
-@Setter
+@Data
+@Component
+@ConfigurationProperties(prefix = "crawler")
 public class IeltsUpCrawlerConfig {
-    private boolean enabled;
-    private String cron;
     private String baseUrl;
-    private int listeningFrom;
-    private int listeningTo;
-    private int readingFrom;
-    private int readingTo;
+    private String testsPath;
+    private Integer maxPages;
+    private int listeningFrom = 0;
+    private int listeningTo   = 0;
+    private Integer submitWaitMinSeconds = 0;
+
+    @Deprecated
+    private String sessionCookie;
+
+    @Deprecated
+    private Long requestDelayMs;
+
+    @Deprecated
+    private Integer maxRetries;
+
+    @Deprecated
+    private Long retryBackoffMs;
+
+    @Deprecated
+    private Integer submitWaitMaxSeconds;
 }

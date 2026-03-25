@@ -28,7 +28,7 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
+.mvn
 ### VS Code ###
 .vscode/
 insert.sql
@@ -37,3 +37,5 @@ logs/
 *.log.*
 skills-lock.json
 .agents/
+ielts.iml
+crawler-session.json
