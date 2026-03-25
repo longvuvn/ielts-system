@@ -27,7 +27,8 @@ public class Question extends Auditing{
     @Column(columnDefinition = "TEXT")
     private String content;
     private String image_url;
-    private String audio_url;
+
+    @Enumerated(EnumType.STRING)
     private QuestionType type;
 
     @Enumerated(EnumType.STRING)
@@ -43,9 +44,8 @@ public class Question extends Auditing{
     private List<Answer> answer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "section_id")
-    private Section section;
-
+    @JoinColumn(name = "passage_id")
+    private Passage passage;
 
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)

@@ -29,7 +29,7 @@ public class Exam extends Auditing{
     private ExamStatus status;
     private BigDecimal max_score;
     private Instant duration;
-
+    private String source_url;
     @OneToMany(mappedBy = "exam", fetch = FetchType.LAZY)
     private List<Submissions> submissions;
 

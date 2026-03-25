@@ -1,4 +1,4 @@
-package com.ddhva.ielts.dto.exam.res;
+package com.ddhva.ielts.dto.exam;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +15,10 @@ public class CrawledExamDto {
     private String title;
     private List<CrawledSectionDto> sections;
 
-    @Data @AllArgsConstructor @NoArgsConstructor @Builder
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
     public static class CrawledSectionDto {
         private String title;
         private String skillType;
@@ -23,14 +26,22 @@ public class CrawledExamDto {
         private List<CrawledQuestionDto> questions;
     }
 
-    @Data @AllArgsConstructor @NoArgsConstructor @Builder
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
     public static class CrawledQuestionDto {
         private String content;
         private String questionType;
+        private String audioUrl;
+        private String imageUrl;
         private List<CrawledAnswerDto> answers;
     }
 
-    @Data @AllArgsConstructor @NoArgsConstructor @Builder
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
     public static class CrawledAnswerDto {
         private String content;
         private Boolean isCorrect;
