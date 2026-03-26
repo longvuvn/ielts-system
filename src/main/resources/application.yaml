@@ -54,3 +54,6 @@ dictionary:
 crawler:
   base-url: https://study4.com
   tests-path: /tests/ielts/
+
+firebase:
+  service-account: ${FIREBASE_KEY_PATH}
