@@ -39,3 +39,5 @@ skills-lock.json
 .agents/
 ielts.iml
 crawler-session.json
+src/main/resources/firebase-service-account.json
+.env

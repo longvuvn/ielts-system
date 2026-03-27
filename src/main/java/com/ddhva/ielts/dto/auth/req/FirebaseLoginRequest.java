@@ -8,9 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthLogin {
-    @NotBlank(message = "Email is mandatory")
-    private String email;
-    @NotBlank(message = "Password is mandatory")
-    private String password;
+public class FirebaseLoginRequest {
+    @NotBlank(message = "Firebase token is mandatory")
+    private String idToken;
 }
