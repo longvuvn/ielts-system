@@ -26,7 +26,11 @@ public class Question extends Auditing{
     private UUID id;
     @Column(columnDefinition = "TEXT")
     private String content;
-    private String image_url;
+
+    @Column(columnDefinition = "TEXT")
+    private String question_text;
+
+    private Integer question_number;
 
     @Enumerated(EnumType.STRING)
     private QuestionType type;

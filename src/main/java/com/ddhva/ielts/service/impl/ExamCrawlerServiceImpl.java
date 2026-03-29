@@ -61,7 +61,6 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
 
             Set<String> examLinks = navigator.collectAllExamLinks(page);
             log.info("Tìm thấy {} đề thi", examLinks.size());
-
             int inserted = 0, skipped = 0, failed = 0;
             for (String examUrl : new ArrayList<>(examLinks)) {
                 if (limit != null && limit > 0 && inserted >= limit) {
@@ -124,7 +123,6 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
         }
     }
 
-
     // Single exam crawl
     private int crawlSingleExamWithRetry(Page page, BrowserContext ctx, String examUrl) {
         for (int attempt = 1; attempt <= MAX_RETRY; attempt++) {
@@ -170,11 +168,14 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
         exam.setMax_score(questionCount > 0
                 ? BigDecimal.valueOf(questionCount) : BigDecimal.ZERO);
         exam.setDuration(Instant.EPOCH.plus(Duration.ofMinutes(Math.max(minutes, 0L))));
+        SkillType skillType = detectSkillTypeFromPage(page);
+        if (skillType == null) skillType = detectSkillType(title, examUrl);
+        exam.setSkillType(skillType);
         exam = examRepository.saveAndFlush(exam);
 
         List<String> partValues = navigator.getPartValues(page);
         if (partValues.isEmpty()) {
-            log.warn("Không tìm thấy section nào cho đề '{}' tại {}", title, examUrl);
+            log.warn("Khong tim thay section nao cho đe '{}' tai {}", title, examUrl);
             return false;
         }
         log.info("Đề '{}' — {} sections: {}", title, partValues.size(), partValues);
@@ -221,7 +222,6 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
         return totalNewQuestions > 0;
     }
 
-
     // Crawl one part (section)
     private int crawlOnePart(Page page, BrowserContext ctx,
                              String examUrl, String partValue, Section section) {
@@ -231,7 +231,7 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
                 .first()
                 .waitFor(new Locator.WaitForOptions().setTimeout(10_000));
 
-        log.info("Giả lập đọc đề cho part={}...", partValue);
+        log.info("Gia lap doc đe cho part={}...", partValue);
         CrawlerUtils.humanDelay(30_000, 60_000);
 
         navigator.checkOnlyOnePart(page, partValue);
@@ -281,7 +281,13 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
             log.info("Section '{}' audio: {}", section.getTitle(), audioUrl);
         }
 
-        // Wait for questions
+        String imageUrl = extractor.extractSectionImageUrl(page);
+        if (StringUtils.hasText(imageUrl)) {
+            section.setImage_url(imageUrl);
+            sectionRepository.save(section);
+            log.info("Section '{}' image: {}", section.getTitle(), imageUrl);
+        }
+
         try {
             page.locator(QUESTION_WRAPPER_SELECTOR)
                     .first()
@@ -291,18 +297,30 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
             return 0;
         }
 
-        // Passage
         Passage passage = new Passage();
         passage.setSection(section);
         passage.setPassage_number(
                 (int) passageRepository.countBySection_Id(section.getId()) + 1);
-        passage.setContent_html(extractor.extractPassageHtml(page));
+
+        String passageText = extractor.extractPassageHtml(page);
+        if (!StringUtils.hasText(passageText)) {
+            Locator contentArea = page.locator(
+                    ".question-content-left, .form-content, .test-content, .content-left, .context-content, .context-wrapper"
+            ).first();
+            if (contentArea.count() > 0) {
+                passageText = contentArea.innerHTML();
+            }
+        }
+        if (!StringUtils.hasText(passageText)) {
+            passageText = extractor.extractQuestionDisplayText(
+                    page.locator(QUESTION_WRAPPER_SELECTOR).first(), 1);
+        }
+        passage.setContent_html(passageText);
         passage.setInstruction(extractor.extractInstruction(page));
         passage = passageRepository.saveAndFlush(passage);
         log.debug("Đã tạo Passage #{} cho section '{}'",
                 passage.getPassage_number(), section.getTitle());
 
-        // Parse questions
         Locator wrappers = page.locator(QUESTION_WRAPPER_SELECTOR);
         if (wrappers.count() == 0) {
             log.warn("0 wrapper câu hỏi cho part={}", partValue);
@@ -317,9 +335,14 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
 
         for (int i = 0; i < wrappers.count(); i++) {
             Locator wrapper = wrappers.nth(i);
-            String content  = extractor.extractQuestionContent(wrapper);
+            String content = extractor.extractQuestionContent(wrapper);
             if (content.isBlank()) { orderedQuestions.add(null); continue; }
-
+            if (content.length() > 500) {
+                log.debug("Bo qua wrapper {} — content qua dai ({}c), co the la passage",
+                        i, content.length());
+                orderedQuestions.add(null);
+                continue;
+            }
             Integer qNum = extractor.extractQuestionNumber(wrapper, i + 1);
 
             if (existingContents.contains(content)) {
@@ -335,7 +358,8 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
             Question q = new Question();
             q.setPassage(finalPassage);
             q.setContent(content);
-            q.setImage_url(extractor.extractQuestionImageUrl(wrapper));
+            q.setQuestion_text(null);
+            q.setQuestion_number(qNum);
             q.setStatus(QuestionStatus.ACTIVE);
             q.setType(extractor.detectQuestionType(wrapper));
             q.setScore(BigDecimal.ONE);
@@ -347,8 +371,8 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
             saveOptions(wrapper, q);
         }
 
-        log.info("Giả lập làm bài 10 phút cho part={}...", partValue);
-        CrawlerUtils.humanDelay(200_000, 200_000);
+        log.info("Gia lap lam bai 2 phut cho part={}...", partValue);
+        CrawlerUtils.humanDelay(180_000, 180_000);
 
         Object filled = page.evaluate(CrawlerUtils.buildFillAllInputsJs());
         log.debug("Filled {} inputs cho part={}", filled, partValue);
@@ -365,7 +389,6 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
 
         return CrawlerUtils.countNonNull(orderedQuestions);
     }
-
 
     // Re-crawl answer keys
     private int recrawlAnswerKeysForExam(Page page, BrowserContext ctx, Exam exam) {
@@ -393,7 +416,7 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
                 sectionId = dbSections.get(i).getId();
                 long qCount  = questionRepository.countByPassage_Section_Id(sectionId);
                 long correct = answerRepository
-                        .countDistinctQuestionsByPassage_Section_IdAndIs_correctTrue(sectionId);
+                        .countDistinctQuestionsByPassage_Section_IdAndIs_correctTrue(sectionId, true);
                 if (qCount > 0 && correct >= qCount) {
                     log.debug("Section {} đã đủ đáp án, skip", i + 1);
                     continue;
@@ -468,5 +491,30 @@ public class ExamCrawlerServiceImpl implements ExamCrawlerService {
         a.setStatus(AnswerStatus.ACTIVE);
         a.setIs_correct(null);
         return a;
+    }
+
+    private SkillType detectSkillType(String title, String url) {
+        String s = (title + " " + url).toLowerCase();
+        if (s.contains("speaking"))  return SkillType.SPEAKING;
+        if (s.contains("writing"))   return SkillType.WRITING;
+        if (s.contains("gt-task"))   return SkillType.WRITING;
+        if (s.contains("listening")) return SkillType.LISTENING;
+        return SkillType.READING;
+    }
+
+    private SkillType detectSkillTypeFromPage(Page page) {
+        try {
+            Locator tags = page.locator(".tag, .badge, [class*='tag'], .skill-tag");
+            for (int i = 0; i < tags.count(); i++) {
+                String text = tags.nth(i).innerText().toLowerCase();
+                if (text.contains("writing"))   return SkillType.WRITING;
+                if (text.contains("speaking"))  return SkillType.SPEAKING;
+                if (text.contains("listening")) return SkillType.LISTENING;
+                if (text.contains("reading"))   return SkillType.READING;
+            }
+        } catch (Exception ex) {
+            log.warn("detectSkillTypeFromPage lỗi: {}", ex.getMessage());
+        }
+        return null;
     }
 }

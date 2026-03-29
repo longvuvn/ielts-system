@@ -11,39 +11,51 @@ import java.util.UUID;
 public interface AnswerRepository extends JpaRepository<Answer, UUID> {
 
     @Query("""
-    SELECT a.content
-    FROM Answer a
-    WHERE a.question.id = :questionId
+        SELECT a.content
+        FROM Answer a
+        WHERE a.question.id = :questionId
     """)
     List<String> findContentsByQuestion_Id(@Param("questionId") UUID questionId);
 
     @Query("""
-    SELECT a
-    FROM Answer a
-    WHERE a.question.passage.section.id = :sectionId
+        SELECT a
+        FROM Answer a
+        WHERE a.question.passage.section.id = :sectionId
     """)
     List<Answer> findByQuestion_Passage_Section_Id(@Param("sectionId") UUID sectionId);
 
     @Query("""
-    SELECT a
-    FROM Answer a
-    WHERE a.question.passage.section.exam.id = :examId
+        SELECT a
+        FROM Answer a
+        WHERE a.question.passage.section.exam.id = :examId
     """)
     List<Answer> findByQuestion_Passage_Section_Exam_Id(@Param("examId") UUID examId);
 
     @Query("""
         SELECT COUNT(a) FROM Answer a
         WHERE a.question.passage.section.id = :sectionId
-        AND a.is_correct = true
+        AND a.is_correct = :correct
     """)
-    long countByQuestion_Passage_Section_IdAndIs_correctTrue(@Param("sectionId") UUID sectionId);
+    long countByQuestion_Passage_Section_IdAndIs_correctTrue(
+            @Param("sectionId") UUID sectionId,
+            @Param("correct") Boolean correct);
 
     @Query("""
         SELECT COUNT(DISTINCT a.question.id) FROM Answer a
         WHERE a.question.passage.section.id = :sectionId
-        AND a.is_correct = true
+        AND a.is_correct = :correct
     """)
-    long countDistinctQuestionsByPassage_Section_IdAndIs_correctTrue(@Param("sectionId") UUID sectionId);
+    long countDistinctQuestionsByPassage_Section_IdAndIs_correctTrue(
+            @Param("sectionId") UUID sectionId,
+            @Param("correct") Boolean correct);
 
     List<Answer> findByQuestion_Id(UUID questionId);
+
+    @Query("""
+        SELECT a
+        FROM Answer a
+        WHERE a.question.id = :questionId
+        AND a.is_correct = true
+    """)
+    List<Answer> findCorrectAnswersByQuestionId(@Param("questionId") UUID questionId);
 }

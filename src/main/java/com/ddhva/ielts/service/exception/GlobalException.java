@@ -2,6 +2,7 @@ package com.ddhva.ielts.service.exception;
 
 import com.ddhva.ielts.service.exception.error.DuplicateResourceException;
 import com.ddhva.ielts.service.exception.error.ResourceNotFoundException;
+import com.ddhva.ielts.service.exception.error.SessionExpiredException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,5 +72,12 @@ public class GlobalException {
         log.warn("Validation failed: {}", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), errors.toString()));
+    }
+
+    @ExceptionHandler(SessionExpiredException.class)
+    public ResponseEntity<ApiResponse<?>> handleSessionExpiredException(SessionExpiredException e) {
+        log.warn("Session expired: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(HttpStatus.UNAUTHORIZED.value(), e.getMessage()));
     }
 }
