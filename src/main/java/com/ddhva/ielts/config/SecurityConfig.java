@@ -26,18 +26,28 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        auth -> auth
-                                .anyRequest().permitAll()
-                );
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers( "/api/v1/exams").permitAll()
+                        .requestMatchers( "/api/v1/exams/**").permitAll()
+                        .requestMatchers( "/api/v1/topics").permitAll()
+                        .requestMatchers( "/api/v1/section/**").permitAll()
+                        .requestMatchers( "/api/v1/library/search").permitAll()
+                        .requestMatchers( "/api/v1/library/**").permitAll()
+                        .requestMatchers( "/api/v1/flashcard/search").permitAll()
+                        .requestMatchers( "/api/v1/flashcard/**").permitAll()
+                        .requestMatchers( "/api/v1/vocabularies/topic/**").permitAll()
+                        .requestMatchers( "/api/v1/vocabularies/search").permitAll()
+                        .requestMatchers( "/api/v1/vocabularies/**").permitAll()
+
+                        .requestMatchers("/api/v1/crawler/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/v1/learners/**").hasAuthority("ADMIN")
+
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/v1/auth/**").permitAll()
-//                        .anyRequest().authenticated()
-//                )
-//                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-//
-//        return http.build();
     }
 
     @Bean

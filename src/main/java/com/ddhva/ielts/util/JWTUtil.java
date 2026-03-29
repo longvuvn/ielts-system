@@ -30,12 +30,11 @@ public class JWTUtil {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    // ✅ NEW: token có role + userId
     public String generateAccessToken(User user) {
         return Jwts.builder()
                 .subject(user.getEmail())
                 .claim("role", user.getRole().getName())
-                .claim("userId", user.getId().toString())
+                .claim("learnerId", user.getId().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtAccessToken))
                 .signWith(getSigningKey())
