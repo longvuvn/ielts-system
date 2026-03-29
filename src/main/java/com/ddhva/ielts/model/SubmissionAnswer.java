@@ -30,6 +30,9 @@ public class SubmissionAnswer {
     @Lob
     private String answerOption;
 
+    @Column(columnDefinition = "TEXT")
+    private String writingFeedback;
+
     @ManyToOne
     @JoinColumn(name = "submission_id")
     private Submissions submissions;

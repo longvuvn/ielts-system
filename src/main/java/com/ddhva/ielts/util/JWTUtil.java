@@ -1,7 +1,8 @@
 package com.ddhva.ielts.util;
 
-import io.jsonwebtoken.Jwts;
+import com.ddhva.ielts.model.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,21 +26,22 @@ public class JWTUtil {
         return jwtRefreshToken;
     }
 
-    private Key getSigningKey() {
+    public Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    // ✅ GENERATE ACCESS TOKEN
-    public String generateAccessToken(String email) {
+    // ✅ NEW: token có role + userId
+    public String generateAccessToken(User user) {
         return Jwts.builder()
-                .subject(email)
+                .subject(user.getEmail())
+                .claim("role", user.getRole().getName())
+                .claim("userId", user.getId().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtAccessToken))
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    // ✅ GENERATE REFRESH TOKEN
     public String generateRefreshToken(String email) {
         return Jwts.builder()
                 .subject(email)
@@ -49,26 +51,20 @@ public class JWTUtil {
                 .compact();
     }
 
-    // ✅ EXTRACT EMAIL
-    public String extractEmail(String token) {
-        return parseClaims(token).getSubject();
+    public Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
-    // ✅ VALIDATE TOKEN
     public boolean validateToken(String token) {
         try {
-            parseClaims(token);
+            extractAllClaims(token);
             return true;
         } catch (Exception e) {
             return false;
         }
-    }
-
-    private Claims parseClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(getSigningKey())   // ✅ dùng cái này
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
     }
 }

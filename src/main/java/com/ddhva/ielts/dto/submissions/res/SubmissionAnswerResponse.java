@@ -1,5 +1,6 @@
 package com.ddhva.ielts.dto.submissions.res;
 
+import com.ddhva.ielts.dto.writing.WritingFeedbackResponse;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,4 +17,5 @@ public class SubmissionAnswerResponse {
     private String is_correct;
     private String answerText;
     private String answerOption;
+    private WritingFeedbackResponse writingFeedback;
 }
