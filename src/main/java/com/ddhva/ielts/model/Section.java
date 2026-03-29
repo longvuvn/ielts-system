@@ -26,6 +26,7 @@ public class Section {
     private Instant time_limit;
     private Integer section_number;
     private String audio_url;
+    private String image_url;
     @ManyToOne
     @JoinColumn(name = "exam_id")
     private Exam exam;

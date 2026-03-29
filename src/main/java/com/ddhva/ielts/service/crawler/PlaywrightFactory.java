@@ -25,7 +25,6 @@ public class PlaywrightFactory {
         boolean hasSession = Files.exists(Paths.get(SESSION_FILE));
         return playwright.chromium().launch(
                 new BrowserType.LaunchOptions()
-                        .setChannel("msedge")
                         .setHeadless(hasSession)
                         .setArgs(List.of(
                                 "--disable-blink-features=AutomationControlled",

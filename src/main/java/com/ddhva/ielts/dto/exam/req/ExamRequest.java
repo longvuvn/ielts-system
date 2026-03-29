@@ -1,4 +1,4 @@
-package com.ddhva.ielts.dto.answer.res;
+package com.ddhva.ielts.dto.exam.req;
 
 
 import lombok.AllArgsConstructor;
@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AnswerResponse {
-    private String id;
-    private String content;
+public class ExamRequest {
+    private String title;
     private String status;
-    private Boolean isCorrect;
+    private String max_score;
+    private String duration;
 }

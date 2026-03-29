@@ -53,4 +53,4 @@ dictionary:
 
 crawler:
   base-url: https://study4.com
-  tests-path: /tests/ielts/
+  tests-path: tests/ielts-general/

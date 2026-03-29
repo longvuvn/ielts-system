@@ -1,4 +1,4 @@
-package com.ddhva.ielts.dto.exam;
+package com.ddhva.ielts.dto.exam.crawl;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

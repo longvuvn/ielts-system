@@ -6,5 +6,6 @@ public enum QuestionType {
     MULTIPLE_ANSWER,
     FILL_IN_BLANK,
     WRITING,
-    SPEAKING
+    SPEAKING,
+    ESSAY
 }

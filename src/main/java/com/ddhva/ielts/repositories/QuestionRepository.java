@@ -56,4 +56,12 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     // Tìm câu hỏi theo passage
     List<Question> findByPassage_Id(UUID passageId);
+
+    @Query("""
+    SELECT p
+    FROM Passage p
+    JOIN Question q ON q.passage.id = p.id
+    WHERE q.passage.id = :passageId
+""")
+    List<Question> findByPassage_IdWithPassage(@Param("passageId") UUID passageId);
 }

@@ -2,6 +2,7 @@ package com.ddhva.ielts.model;
 
 
 import com.ddhva.ielts.enums.AnswerStatus;
+import com.ddhva.ielts.service.crawler.BooleanToStringConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,7 +27,8 @@ public class Answer extends Auditing{
     @Enumerated(EnumType.STRING)
     private AnswerStatus status;
 
-    @Column(columnDefinition = "TEXT")
+    @Convert(converter = BooleanToStringConverter.class)
+    @Column(columnDefinition = "VARCHAR(5)")
     private Boolean is_correct;
 
 
