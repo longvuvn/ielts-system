@@ -1,7 +1,10 @@
 package com.ddhva.ielts.service;
 
-import com.ddhva.ielts.dto.writing.WritingFeedbackResponse;
+import com.ddhva.ielts.dto.writing.req.WritingRequest;
+import com.ddhva.ielts.dto.writing.res.WritingFeedbackResponse;
+
+import java.util.UUID;
 
 public interface WritingGradingService {
-    WritingFeedbackResponse grade(String taskQuestion, String essayAnswer);
+    WritingFeedbackResponse grade(WritingRequest writingRequest);
 }

@@ -1,4 +1,4 @@
-package com.ddhva.ielts.dto.writing;
+package com.ddhva.ielts.dto.writing.res;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,6 @@
 package com.ddhva.ielts.dto.submissions.res;
 
-import com.ddhva.ielts.dto.writing.WritingFeedbackResponse;
+import com.ddhva.ielts.dto.writing.res.WritingFeedbackResponse;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;

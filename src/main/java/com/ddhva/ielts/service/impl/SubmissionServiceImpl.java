@@ -4,7 +4,8 @@ import com.ddhva.ielts.dto.submissions.req.SubmissionAnswerRequest;
 import com.ddhva.ielts.dto.submissions.req.SubmissionRequest;
 import com.ddhva.ielts.dto.submissions.res.SubmissionAnswerResponse;
 import com.ddhva.ielts.dto.submissions.res.SubmissionResponse;
-import com.ddhva.ielts.dto.writing.WritingFeedbackResponse;
+import com.ddhva.ielts.dto.writing.req.WritingRequest;
+import com.ddhva.ielts.dto.writing.res.WritingFeedbackResponse;
 import com.ddhva.ielts.enums.QuestionType;
 import com.ddhva.ielts.enums.SubmissionStatus;
 import com.ddhva.ielts.model.*;
@@ -70,7 +71,6 @@ public class SubmissionServiceImpl implements SubmissionService {
         submissions.setScore(totalScore);
         submissions = submissionRepository.save(submissions);
 
-        // ✅ map response + inject writing feedback
         SubmissionResponse response = modelMapper.map(submissions, SubmissionResponse.class);
 
         if (response.getSubmissionAnswers() != null) {
@@ -113,28 +113,16 @@ public class SubmissionServiceImpl implements SubmissionService {
             submissionAnswer.setQuestion(question);
             submissionAnswer.setAnswerText(answerRequest.getAnswerText());
             submissionAnswer.setAnswerOption(answerRequest.getAnswerQuestion());
-
-            // ================= WRITING =================
             if (question.getType() == QuestionType.WRITING) {
-
-                WritingFeedbackResponse feedback = writingGradingService.grade(
-                        question.getContent(),
-                        answerRequest.getAnswerText()
-                );
-
+                WritingRequest writingRequest = new WritingRequest();
+                WritingFeedbackResponse feedback = writingGradingService.grade(writingRequest);
                 BigDecimal band = feedback.getBand() != null
                         ? feedback.getBand()
                         : BigDecimal.ZERO;
-
-                // 🎯 Normalize IELTS band (0.5 step)
                 band = band.multiply(BigDecimal.valueOf(2))
-                        .setScale(0, RoundingMode.HALF_UP)
-                        .divide(BigDecimal.valueOf(2));
-
+                        .setScale(0, RoundingMode.HALF_UP);
                 submissionAnswer.setScore(band);
                 submissionAnswer.setIs_correct(band.compareTo(BigDecimal.valueOf(5.0)) >= 0);
-
-                // ✅ FIX: lưu JSON đúng field
                 submissionAnswer.setWritingFeedback(serializeFeedback(feedback));
 
                 totalScore = totalScore.add(band);
@@ -142,8 +130,6 @@ public class SubmissionServiceImpl implements SubmissionService {
                 if (submissionAnswer.getIs_correct()) correctCount++;
                 else failedCount++;
             }
-
-            // ================= OTHER =================
             else {
                 List<Answer> correctAnswers = answerRepository.findCorrectAnswersByQuestionId(question.getId());
 
