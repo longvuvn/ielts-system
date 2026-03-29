@@ -127,7 +127,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private AuthResponse buildAuthResponse(Learner learner) {
-        String accessToken  = jwtUtil.generateAccessToken(learner.getEmail());
+        String accessToken  = jwtUtil.generateAccessToken(learner);
         String refreshToken = jwtUtil.generateRefreshToken(learner.getEmail());
 
         RefreshToken token = new RefreshToken();

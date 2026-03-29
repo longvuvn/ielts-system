@@ -1,7 +1,7 @@
 package com.ddhva.ielts.model;
 
-
 import com.ddhva.ielts.enums.RoleStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,6 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Role {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -26,5 +27,6 @@ public class Role {
     private RoleStatus status;
 
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+    @JsonIgnore // 🔥 FIX LOOP CUỐI CÙNG
     private List<User> users;
 }

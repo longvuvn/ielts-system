@@ -1,12 +1,10 @@
 package com.ddhva.ielts.util;
 
-import com.ddhva.ielts.model.User;
-import com.ddhva.ielts.repositories.UserRepository;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -24,16 +22,14 @@ import java.util.Collections;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
-    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
+                                    HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
-
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -43,28 +39,24 @@ public class JWTFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         try {
-            String email = jwtUtil.extractEmail(token);
+            Claims claims = jwtUtil.extractAllClaims(token);
 
-            User user = userRepository.findByEmail(email).orElse(null);
+            String email = claims.getSubject();
+            String role  = claims.get("role", String.class);
 
-            if (user != null && jwtUtil.validateToken(token)) {
+            log.info("EMAIL: {}", email);
+            log.info("ROLE: {}", role);
 
-                // 🔥 ROLE (quan trọng)
-                String roleName = user.getRole() != null
-                        ? user.getRole().getName()
-                        : "USER";
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            email,
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
+                    );
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                user,
-                                null,
-                                Collections.singletonList(
-                                        new SimpleGrantedAuthority("ROLE_" + roleName)
-                                )
-                        );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
+            log.info("AUTH SET SUCCESS");
 
         } catch (Exception e) {
             log.error("JWT error: {}", e.getMessage());
