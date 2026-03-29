@@ -58,6 +58,7 @@ crawler:
 firebase:
   service-account: ${FIREBASE_KEY_PATH}
 
-openai:
-  api-key: ${OPENAI_API_KEY}
-  model: gpt-4o-mini
+Gemini:
+  api:
+    key: ${GEMINI_API_KEY}
+    url: ${GEMINI_API_URL}

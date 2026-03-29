@@ -1,8 +1,12 @@
 package com.ddhva.ielts.controller;
 
-import com.ddhva.ielts.dto.writing.WritingFeedbackResponse;
+import com.ddhva.ielts.dto.writing.req.WritingRequest;
+import com.ddhva.ielts.dto.writing.res.WritingFeedbackResponse;
 import com.ddhva.ielts.service.WritingGradingService;
+import com.ddhva.ielts.service.exception.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -15,10 +19,14 @@ public class WritingController {
     private final WritingGradingService writingGradingService;
 
     @PostMapping("/grade")
-    public WritingFeedbackResponse grade(@RequestBody Map<String, String> req) {
-        return writingGradingService.grade(
-                req.get("task"),
-                req.get("essay")
+    public ResponseEntity<ApiResponse<WritingFeedbackResponse>> grade(@RequestBody WritingRequest req) {
+        WritingFeedbackResponse response = writingGradingService.grade(req);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Writing Grade Successfully",
+                        response
+                )
         );
     }
 }
