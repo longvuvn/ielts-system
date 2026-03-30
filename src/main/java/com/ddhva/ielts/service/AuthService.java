@@ -12,4 +12,5 @@ public interface AuthService {
     AuthResponse register(AuthRegister request);
     AuthResponse loginWithGoogle(FirebaseLoginRequest request);
     RefreshTokenResponse refreshToken(RefreshTokenRequest request);
+    void logout(RefreshTokenRequest refreshToken);
 }
