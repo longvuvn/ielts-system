@@ -4,6 +4,8 @@ import com.ddhva.ielts.dto.auth.req.AuthLogin;
 import com.ddhva.ielts.dto.auth.req.AuthRegister;
 import com.ddhva.ielts.dto.auth.req.FirebaseLoginRequest;
 import com.ddhva.ielts.dto.auth.res.AuthResponse;
+import com.ddhva.ielts.dto.refresh.req.RefreshTokenRequest;
+import com.ddhva.ielts.dto.refresh.res.RefreshTokenResponse;
 import com.ddhva.ielts.service.AuthService;
 import com.ddhva.ielts.service.exception.ApiResponse;
 import jakarta.validation.Valid;
@@ -46,6 +48,15 @@ public class AuthController {
         AuthResponse response = authService.loginWithGoogle(request);
         return ResponseEntity.ok(
                 new ApiResponse<>(HttpStatus.OK.value(), "Google Login Successfully", response)
+        );
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest request) {
+        RefreshTokenResponse response = authService.refreshToken(request);
+        return ResponseEntity.ok(
+                new ApiResponse<>(HttpStatus.OK.value(), "Token Refreshed Successfully", response)
         );
     }
 }
