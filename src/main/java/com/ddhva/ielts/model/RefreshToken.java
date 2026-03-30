@@ -19,6 +19,8 @@ public class RefreshToken extends Auditing {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String refreshToken;
     private Instant expiryDate;
     private Boolean revoked;

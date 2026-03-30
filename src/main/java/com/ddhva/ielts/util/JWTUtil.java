@@ -2,11 +2,13 @@ package com.ddhva.ielts.util;
 
 import com.ddhva.ielts.model.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -22,48 +24,62 @@ public class JWTUtil {
     @Value("${jwt.expiration.refresh-token}")
     private long jwtRefreshToken;
 
-    public long getJwtRefreshToken() {
-        return jwtRefreshToken;
+    private Key getSingingKey(){
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public Key getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
-    }
+    private String generateToken(User user, long expiration){
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expiration);
 
-    public String generateAccessToken(User user) {
         return Jwts.builder()
-                .subject(user.getEmail())
+                .subject(user.getUsername())
+                .claim("userId", user.getId().toString())
                 .claim("role", user.getRole().getName())
-                .claim("learnerId", user.getId().toString())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtAccessToken))
-                .signWith(getSigningKey())
+                .claim("avatar", user.getAvatarUrl())
+                .claim("fullName", user.getFullName())
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(getSingingKey())
                 .compact();
     }
 
-    public String generateRefreshToken(String email) {
-        return Jwts.builder()
-                .subject(email)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtRefreshToken))
-                .signWith(getSigningKey())
-                .compact();
+    public String generateAccessToken(User user){
+        return generateToken(user, jwtAccessToken);
     }
 
-    public Claims extractAllClaims(String token) {
+    public String generateRefreshToken(User user){
+        return generateToken(user, jwtRefreshToken);
+    }
+
+    public Claims extractAllClaims(String token){
         return Jwts.parser()
-                .setSigningKey(getSigningKey())
+                .verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8)))
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
+
     }
 
-    public boolean validateToken(String token) {
+    public String extractUsername(String token){
+        Claims claims = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8)))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return claims.getSubject();
+    }
+
+    public boolean validateToken(String token){
         try {
-            extractAllClaims(token);
+            extractAllClaims(token).getSubject();
             return true;
-        } catch (Exception e) {
-            return false;
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    public long getRefreshTokenExpiration() {
+        return jwtRefreshToken;
     }
 }

@@ -17,41 +17,35 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-
-
 public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers( "/api/v1/exams").permitAll()
-                        .requestMatchers( "/api/v1/exams/**").permitAll()
-                        .requestMatchers( "/api/v1/topics").permitAll()
-                        .requestMatchers( "/api/v1/section/**").permitAll()
-                        .requestMatchers( "/api/v1/library/search").permitAll()
-                        .requestMatchers( "/api/v1/library/**").permitAll()
-                        .requestMatchers( "/api/v1/flashcard/search").permitAll()
-                        .requestMatchers( "/api/v1/flashcard/**").permitAll()
-                        .requestMatchers( "/api/v1/vocabularies/topic/**").permitAll()
-                        .requestMatchers( "/api/v1/vocabularies/search").permitAll()
-                        .requestMatchers( "/api/v1/vocabularies/**").permitAll()
-
-
-
+                        .requestMatchers("/api/v1/exams/**").permitAll()
+                        .requestMatchers("/api/v1/topics/**").permitAll()
+                        .requestMatchers("/api/v1/section/**").permitAll()
+                        .requestMatchers("/api/v1/library/search").permitAll()
+                        .requestMatchers("/api/v1/library/**").permitAll()
+                        .requestMatchers("/api/v1/flashcard/search").permitAll()
+                        .requestMatchers("/api/v1/flashcard/**").permitAll()
+                        .requestMatchers("/api/v1/vocabularies/topic/**").permitAll()
+                        .requestMatchers("/api/v1/vocabularies/search").permitAll()
+                        .requestMatchers("/api/v1/vocabularies/**").permitAll()
                         .requestMatchers("/api/v1/deck-vocabulary/**").permitAll()
-
+                        .requestMatchers("/api/v1/submissions/**").permitAll()
+                        .requestMatchers("/api/v1/writing/**").hasAuthority("LEARNER")
                         .requestMatchers("/api/v1/crawler/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/v1/learners/**").hasAuthority("ADMIN")
-
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean

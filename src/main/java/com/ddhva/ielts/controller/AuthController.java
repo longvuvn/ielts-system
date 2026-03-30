@@ -59,4 +59,15 @@ public class AuthController {
                 new ApiResponse<>(HttpStatus.OK.value(), "Token Refreshed Successfully", response)
         );
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody RefreshTokenRequest refreshTokenRequest){
+        authService.logout(refreshTokenRequest);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Logout Successful"
+                )
+        );
+    }
 }
