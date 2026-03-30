@@ -26,6 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import com.ddhva.ielts.dto.refresh.req.RefreshTokenRequest;
+import com.ddhva.ielts.dto.refresh.res.RefreshTokenResponse;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -143,6 +146,58 @@ public class AuthServiceImpl implements AuthService {
                 .fullName(learner.getFullName())
                 .email(learner.getEmail())
                 .role(learner.getRole() != null ? learner.getRole().getName() : "LEARNER")
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public RefreshTokenResponse refreshToken(RefreshTokenRequest request) {
+
+        RefreshToken savedToken = refreshTokenRepository
+                .findByRefreshToken(request.getRefreshToken())
+                .orElseThrow(() -> new IllegalArgumentException("Refresh token not found"));
+
+
+        if (Boolean.TRUE.equals(savedToken.getRevoked())) {
+            throw new IllegalArgumentException("Refresh token has been revoked");
+        }
+
+
+        if (savedToken.getExpiryDate().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Refresh token has expired");
+        }
+
+
+        if (!jwtUtil.validateToken(request.getRefreshToken())) {
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
+
+
+        Learner learner = learnerRepository.findByEmail(
+                        jwtUtil.extractAllClaims(request.getRefreshToken()).getSubject())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+
+        savedToken.setRevoked(true);
+        refreshTokenRepository.save(savedToken);
+
+
+        String newAccessToken  = jwtUtil.generateAccessToken(learner);
+        String newRefreshToken = jwtUtil.generateRefreshToken(learner.getEmail());
+
+
+        RefreshToken newToken = new RefreshToken();
+        newToken.setRefreshToken(newRefreshToken);
+        newToken.setUser(learner);
+        newToken.setRevoked(false);
+        newToken.setExpiryDate(Instant.now().plusMillis(jwtUtil.getJwtRefreshToken()));
+        refreshTokenRepository.save(newToken);
+
+        log.info("[AUTH] Token refreshed for: {}", learner.getEmail());
+
+        return RefreshTokenResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
                 .build();
     }
 }
