@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface LearnerRepository extends JpaRepository<Learner, UUID> {
     Optional<Learner> findByEmail(String email);
+    boolean existsByUsername(String username);
 }

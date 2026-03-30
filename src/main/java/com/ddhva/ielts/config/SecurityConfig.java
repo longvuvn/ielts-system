@@ -40,6 +40,10 @@ public class SecurityConfig {
                         .requestMatchers( "/api/v1/vocabularies/search").permitAll()
                         .requestMatchers( "/api/v1/vocabularies/**").permitAll()
 
+
+
+                        .requestMatchers("/api/v1/deck-vocabulary/**").permitAll()
+
                         .requestMatchers("/api/v1/crawler/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/v1/learners/**").hasAuthority("ADMIN")
 
