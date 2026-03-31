@@ -1,6 +1,7 @@
 package com.ddhva.ielts.controller;
 
 
+import com.ddhva.ielts.dto.exam.req.ExamRequest;
 import com.ddhva.ielts.dto.exam.res.ExamResponse;
 import com.ddhva.ielts.dto.pagination.Pagination;
 import com.ddhva.ielts.dto.section.res.SectionResponse;
@@ -34,7 +35,7 @@ public class ExamController {
         );
     }
 
-    @GetMapping("/{examId}")
+    @GetMapping("/{examId}/sections")
     public ResponseEntity<ApiResponse<List<SectionResponse>>> getSectionByExamId(@PathVariable String examId){
         List<SectionResponse> response = examService.getSectionByExamId(examId);
         return ResponseEntity.ok(
@@ -42,6 +43,42 @@ public class ExamController {
                         HttpStatus.OK.value(),
                         "Get Successfully",
                         response
+                )
+        );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<ExamResponse>> getById(@PathVariable String id){
+        ExamResponse response = examService.getExamById(id);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Get Successfully",
+                        response
+                )
+        );
+    }
+
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<ExamResponse>> update(@PathVariable String id, @RequestBody ExamRequest request){
+        ExamResponse res = examService.updateExam(id, request);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Update Successfully",
+                        res
+                )
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id){
+        examService.deleteExam(id);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        HttpStatus.OK.value(),
+                        "Delete Successfully"
                 )
         );
     }

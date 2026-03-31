@@ -1,5 +1,6 @@
 package com.ddhva.ielts.service.impl;
 
+import com.ddhva.ielts.dto.exam.req.ExamRequest;
 import com.ddhva.ielts.dto.exam.res.ExamResponse;
 import com.ddhva.ielts.dto.pagination.Pagination;
 import com.ddhva.ielts.dto.section.res.SectionResponse;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -57,5 +59,37 @@ public class ExamServiceImpl implements ExamService {
                     return res;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ExamResponse getExamById(String examId) {
+        UUID examUUID = UUID.fromString(examId);
+        Exam exam = examRepository.findById(examUUID)
+                .orElseThrow(() -> new IllegalArgumentException("Exam not found"));
+        return modelMapper.map(exam, ExamResponse.class);
+    }
+
+    @Override
+    @Transactional
+    public ExamResponse updateExam(String examId, ExamRequest request) {
+        UUID examUUID = UUID.fromString(examId);
+        Exam exam = examRepository.findById(examUUID)
+                .orElseThrow(() -> new IllegalArgumentException("Exam not found"));
+        modelMapper.map(request, exam);
+        exam = examRepository.save(exam);
+        ExamResponse response = modelMapper.map(exam, ExamResponse.class);
+        if(exam.getDuration() != null && exam.getSkillType() != null){
+            response.setDuration(exam.getDuration().toString());
+            response.setSkillType(exam.getSkillType().toString());
+        }
+        return modelMapper.map(exam, ExamResponse.class);
+    }
+
+    @Override
+    public void deleteExam(String examId) {
+        UUID examUUID = UUID.fromString(examId);
+        Exam exam = examRepository.findById(examUUID)
+                .orElseThrow(() -> new IllegalArgumentException("Exam not found"));
+        examRepository.delete(exam);
     }
 }

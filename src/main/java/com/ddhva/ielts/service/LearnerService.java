@@ -5,7 +5,5 @@ import com.ddhva.ielts.dto.learner.res.LearnerResponse;
 import java.util.List;
 
 public interface LearnerService {
-
     List<LearnerResponse> getAll();
-    List<LearnerResponse> getAllDTO();
 }

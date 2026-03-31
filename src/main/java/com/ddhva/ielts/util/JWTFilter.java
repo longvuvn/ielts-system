@@ -35,33 +35,24 @@ public class JWTFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
         String token = authHeader.substring(7);
-
         try {
             Claims claims = jwtUtil.extractAllClaims(token);
-
             String email = claims.getSubject();
             String role  = claims.get("role", String.class);
-
             log.info("EMAIL: {}", email);
             log.info("ROLE: {}", role);
-
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             email,
                             null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
                     );
-
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
             log.info("AUTH SET SUCCESS");
-
         } catch (Exception e) {
             log.error("JWT error: {}", e.getMessage());
         }
-
         filterChain.doFilter(request, response);
     }
 }

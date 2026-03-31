@@ -5,37 +5,24 @@ import com.ddhva.ielts.model.Learner;
 import com.ddhva.ielts.repositories.LearnerRepository;
 import com.ddhva.ielts.service.LearnerService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class LearnerServiceImpl implements LearnerService {
 
     private final LearnerRepository learnerRepository;
-
-    // 🔥 map Entity → DTO
-    private LearnerResponse mapToResponse(Learner learner) {
-        return LearnerResponse.builder()
-                .id(learner.getId().toString())
-                .fullName(learner.getFullName())
-                .email(learner.getEmail())
-                .role(learner.getRole().getName())
-                .build();
-    }
+    private final ModelMapper modelMapper;
 
     @Override
     public List<LearnerResponse> getAll() {
-        return learnerRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
-    public List<LearnerResponse> getAllDTO() {
-        return learnerRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        List<Learner> learners = learnerRepository.findAll();
+        return learners.stream()
+                .map(learner -> modelMapper.map(learner, LearnerResponse.class))
+                .collect(Collectors.toList());
     }
 }
