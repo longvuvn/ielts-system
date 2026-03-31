@@ -9,9 +9,11 @@ import com.ddhva.ielts.repositories.LearnerRepository;
 import com.ddhva.ielts.repositories.SubmissionRepository;
 import com.ddhva.ielts.service.LearnerService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,13 +37,13 @@ public class LearnerServiceImpl implements LearnerService {
 
     private static final String UPLOAD_DIR = "uploads/avatars/";
 
-    // ==================== GET ALL ====================
+
     @Override
     public List<LearnerResponse> getAll() {
-        return learnerRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        List<Learner> learners = learnerRepository.findAll();
+        return learners.stream()
+                .map(learner -> modelMapper.map(learner, LearnerResponse.class))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -197,5 +199,5 @@ public class LearnerServiceImpl implements LearnerService {
     private String getExtension(String filename) {
         if (filename == null || !filename.contains(".")) return ".jpg";
         return filename.substring(filename.lastIndexOf("."));
-    }
+   }
 }

@@ -22,7 +22,8 @@ public interface LibraryRepository extends JpaRepository<Library, UUID> {
     @Query("""
     SELECT l
     FROM Library l
-    WHERE LOWER(l.name) LIKE LOWER(CONCAT('%', :name, '%'))
+    WHERE l.is_Public = true
+      AND LOWER(l.name) LIKE LOWER(CONCAT('%', :name, '%'))
 """)
     Optional<Page<Library>> searchLibrary(@Param("name") String name, Pageable pageable);
 }
