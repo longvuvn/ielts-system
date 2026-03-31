@@ -1,20 +1,22 @@
 package com.ddhva.ielts.util;
 
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Objects;
 
 @Component
 @Slf4j
@@ -22,37 +24,32 @@ import java.util.List;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final UserDetailsService userDetailService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
-
+    protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response,@NonNull FilterChain filterChain) throws ServletException, IOException {
+        long startTime = System.currentTimeMillis();
+        String method = request.getMethod();
+        String uri = request.getRequestURI();
+        int status = response.getStatus();
+        long duration = System.currentTimeMillis() - startTime;
+        log.info("REQUEST: {} {}", method, uri);
         String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        String token = authHeader.substring(7);
-        try {
-            Claims claims = jwtUtil.extractAllClaims(token);
-            String email = claims.getSubject();
-            String role  = claims.get("role", String.class);
-            log.info("EMAIL: {}", email);
-            log.info("ROLE: {}", role);
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            email,
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
-                    );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            log.info("AUTH SET SUCCESS");
-        } catch (Exception e) {
-            log.error("JWT error: {}", e.getMessage());
+        if (Objects.nonNull(authHeader) && authHeader.startsWith("Bearer ")) {
+            String jwt = authHeader.replace("Bearer ", "");
+            String username = jwtUtil.extractUsername(jwt);
+            if (Objects.nonNull(username) && Objects.isNull(SecurityContextHolder.getContext().getAuthentication())) {
+                UserDetails userDetails = userDetailService.loadUserByUsername(username);
+                if (jwtUtil.validateToken(jwt)) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
         }
         filterChain.doFilter(request, response);
+        log.info("RESPONSE: {} {} || status={} - time={}ms",
+                method, uri, status, duration);
     }
 }

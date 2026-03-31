@@ -9,23 +9,31 @@ import com.ddhva.ielts.enums.UserStatus;
 import com.ddhva.ielts.model.Learner;
 import com.ddhva.ielts.model.RefreshToken;
 import com.ddhva.ielts.model.Role;
+import com.ddhva.ielts.model.User;
 import com.ddhva.ielts.repositories.LearnerRepository;
 import com.ddhva.ielts.repositories.RefreshTokenRepository;
 import com.ddhva.ielts.repositories.RoleRepository;
 import com.ddhva.ielts.repositories.UserRepository;
 import com.ddhva.ielts.service.AuthService;
+import com.ddhva.ielts.service.RefreshTokenService;
 import com.ddhva.ielts.util.JWTUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import com.ddhva.ielts.dto.refresh.req.RefreshTokenRequest;
+import com.ddhva.ielts.dto.refresh.res.RefreshTokenResponse;
+
 
 @Service
 @Slf4j
@@ -37,19 +45,26 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final String AVATAR_URL = "/image/c21f969b5f03d33d43e04f8f136e7682.png";
     private final JWTUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
+    private final AuthenticationManager authenticationManager;
+
 
     @Override
     public AuthResponse login(AuthLogin request) {
-        Learner learner = learnerRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Email not found"));
-
-        if (!passwordEncoder.matches(request.getPassword(), learner.getPassword())) {
-            throw new IllegalArgumentException("Invalid password");
-        }
-
-        log.info("[AUTH] Login success: {}", learner.getEmail());
-        return buildAuthResponse(learner);
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found with username: " + request.getEmail()));
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+        refreshTokenService.createRefreshToken(user, refreshToken);
+        return new AuthResponse(accessToken, refreshToken, user.getFullName(), user.getEmail(), user.getRole().getName());
     }
 
     @Override
@@ -65,7 +80,8 @@ public class AuthServiceImpl implements AuthService {
         learner.setFullName(request.getFullName());
         learner.setEmail(request.getEmail());
         learner.setUsername(request.getUsername());
-        learner.setPassword(passwordEncoder.encode(request.getPassword()));
+        learner.setPassword(Objects.requireNonNull(passwordEncoder.encode(request.getPassword())));
+        learner.setAvatarUrl(AVATAR_URL);
         learner.setStatus(UserStatus.ACTIVE);
         learner.setRole(role);
         learnerRepository.save(learner);
@@ -108,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
         learner.setFullName(fullName != null ? fullName : email);
         learner.setEmail(email);
         learner.setUsername(email);
-        learner.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+        learner.setPassword(Objects.requireNonNull(passwordEncoder.encode(UUID.randomUUID().toString())));
         learner.setStatus(UserStatus.ACTIVE);
         learner.setRole(role);
         learnerRepository.save(learner);
@@ -128,13 +144,13 @@ public class AuthServiceImpl implements AuthService {
 
     private AuthResponse buildAuthResponse(Learner learner) {
         String accessToken  = jwtUtil.generateAccessToken(learner);
-        String refreshToken = jwtUtil.generateRefreshToken(learner.getEmail());
+        String refreshToken = jwtUtil.generateRefreshToken(learner);
 
         RefreshToken token = new RefreshToken();
         token.setRefreshToken(refreshToken);
         token.setUser(learner);
         token.setRevoked(false);
-        token.setExpiryDate(Instant.now().plusMillis(jwtUtil.getJwtRefreshToken()));
+        token.setExpiryDate(Instant.now().plusMillis(jwtUtil.getRefreshTokenExpiration()));
         refreshTokenRepository.save(token);
 
         return AuthResponse.builder()
@@ -144,5 +160,54 @@ public class AuthServiceImpl implements AuthService {
                 .email(learner.getEmail())
                 .role(learner.getRole() != null ? learner.getRole().getName() : "LEARNER")
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public RefreshTokenResponse refreshToken(RefreshTokenRequest request) {
+
+        RefreshToken savedToken = refreshTokenRepository
+                .findByRefreshToken(request.getRefreshToken())
+                .orElseThrow(() -> new IllegalArgumentException("Refresh token not found"));
+
+
+        if (Boolean.TRUE.equals(savedToken.getRevoked())) {
+            throw new IllegalArgumentException("Refresh token has been revoked");
+        }
+
+
+        if (savedToken.getExpiryDate().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Refresh token has expired");
+        }
+
+
+        if (!jwtUtil.validateToken(request.getRefreshToken())) {
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
+
+        Learner learner = learnerRepository.findByEmail(
+                        jwtUtil.extractAllClaims(request.getRefreshToken()).getSubject())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        savedToken.setRevoked(true);
+        refreshTokenRepository.save(savedToken);
+        String access_token  = jwtUtil.generateAccessToken(learner);
+
+
+
+        RefreshToken newToken = new RefreshToken();
+        newToken.setUser(learner);
+        newToken.setRevoked(false);
+        refreshTokenRepository.save(newToken);
+
+        log.info("[AUTH] Token refreshed for: {}", learner.getEmail());
+
+        return RefreshTokenResponse.builder()
+                .accessToken(access_token)
+                .build();
+    }
+
+    @Override
+    public void logout(RefreshTokenRequest refreshToken) {
+        refreshTokenService.revokeToken(refreshToken.getRefreshToken());
     }
 }

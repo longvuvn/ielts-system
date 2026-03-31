@@ -30,6 +30,8 @@ public class User extends Auditing {
     @NonNull
     private String username;
 
+    private String avatarUrl;
+
     @NonNull
     @JsonIgnore
     private String password;
