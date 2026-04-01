@@ -2,6 +2,8 @@ package com.ddhva.ielts.service.impl;
 
 import com.ddhva.ielts.dto.deckvocabulary.req.DeckVocabularyRequest;
 import com.ddhva.ielts.dto.deckvocabulary.req.DeckVocabularyUpdateRequest;
+import com.ddhva.ielts.dto.deckvocabulary.req.ReviewRequest;
+import com.ddhva.ielts.dto.deckvocabulary.res.AnswerDefinition;
 import com.ddhva.ielts.dto.deckvocabulary.res.DeckVocabularyResponse;
 import com.ddhva.ielts.dto.dictionary.DictionaryApiResponse;
 import com.ddhva.ielts.dto.pagination.Pagination;
@@ -28,6 +30,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -153,6 +157,66 @@ public class DeckVocabularyServiceImpl implements DeckVocabularyService {
                                 .orElseThrow(() -> new IllegalArgumentException("Deck vocabulary not found"));
                 deckVocabularyRepository.delete(deckVocabulary);
                 log.info("Successfully deleted deck vocabulary {}", deckVocabulary.getId());
+        }
+
+        @Override
+        public DeckVocabularyResponse countDeckVocabularyByFlashcardId(String deckVocabularyId) {
+                UUID deckVocabularyUUID = UUID.fromString(deckVocabularyId);
+                DeckVocabulary deckVocabulary = deckVocabularyRepository.findById(deckVocabularyUUID)
+                        .orElseThrow(() -> new IllegalArgumentException("Deck vocabulary not found"));
+                deckVocabulary.setReviewCount(deckVocabulary.getReviewCount() + 1);
+                deckVocabulary = deckVocabularyRepository.save(deckVocabulary);
+                return getDeckVocabularyResponse(deckVocabulary);
+        }
+
+        @Override
+        public List<AnswerDefinition> userDefinition(String deckVocabularyId) {
+                UUID deckVocabularyUUID = UUID.fromString(deckVocabularyId);
+
+                DeckVocabulary correct = deckVocabularyRepository.findById(deckVocabularyUUID)
+                        .orElseThrow(() -> new IllegalArgumentException("DeckVocabulary not found"));
+
+                List<DeckVocabulary> wrongs = deckVocabularyRepository
+                        .findWrongAnswers(correct.getFlashcard().getId(), correct.getVocabulary().getId());
+                Collections.shuffle(wrongs);
+                List<DeckVocabulary> randomThree = wrongs.stream().limit(3).toList();
+
+                List<AnswerDefinition> answers = new ArrayList<>();
+                answers.add(AnswerDefinition.builder()
+                        .vocabularyId(correct.getId().toString())
+                        .definition(correct.getUserDefinition())
+                        .isCorrect(String.valueOf(true))
+                        .build());
+
+                randomThree.forEach(dv -> answers.add(AnswerDefinition.builder()
+                        .vocabularyId(dv.getId().toString())
+                        .definition(dv.getUserDefinition())
+                        .isCorrect(String.valueOf(false))
+                        .build()));
+
+                Collections.shuffle(answers);
+                return answers;
+        }
+
+        @Override
+        public void review(String id, ReviewRequest request) {
+                UUID deckVocabularyUUID = UUID.fromString(id);
+                DeckVocabulary deckVocabulary = deckVocabularyRepository.findById(deckVocabularyUUID)
+                        .orElseThrow(() -> new IllegalArgumentException("Deck vocabulary not found"));
+                modelMapper.map(request, deckVocabulary);
+                deckVocabulary.setReviewCount(deckVocabulary.getReviewCount() + 1);
+                deckVocabulary.setLastReviewedAt(Instant.now());
+                if (Boolean.parseBoolean(request.getIsCorrect())) {
+                        int count = deckVocabulary.getReviewCount();
+                        if (count >= 3) {
+                                deckVocabulary.setReviewStatus(ReviewStatus.MASTERED);
+                        } else {
+                                deckVocabulary.setReviewStatus(ReviewStatus.LEARNING);
+                        }
+                } else {
+                        deckVocabulary.setReviewStatus(ReviewStatus.LEARNING);
+                }
+                deckVocabularyRepository.save(deckVocabulary);
         }
 
         private DeckVocabularyResponse getDeckVocabularyResponse(DeckVocabulary deckVocabulary) {

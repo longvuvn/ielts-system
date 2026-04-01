@@ -5,6 +5,7 @@ import com.ddhva.ielts.dto.vocabulary.req.VocabularyRequest;
 import com.ddhva.ielts.service.exception.ApiResponse;
 import com.ddhva.ielts.dto.vocabulary.res.VocabularyResponse;
 import com.ddhva.ielts.service.VocabularyService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/vocabularies")
 @RequiredArgsConstructor
+@Tag(name = "Vocabulary Controller", description = "Vocabulary Controller API")
 public class VocabularyController {
 
     private final VocabularyService vocabularyService;

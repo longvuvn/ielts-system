@@ -24,6 +24,7 @@ import java.math.RoundingMode;
 import java.nio.file.*;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -34,7 +35,7 @@ public class LearnerServiceImpl implements LearnerService {
 
     private final LearnerRepository learnerRepository;
     private final SubmissionRepository submissionRepository;
-
+    private final ModelMapper modelMapper;
     private static final String UPLOAD_DIR = "uploads/avatars/";
 
 
@@ -142,10 +143,10 @@ public class LearnerServiceImpl implements LearnerService {
 
         List<Submissions> submissions = submissionsPage.getContent();
 
-        // ✅ FIX average
+        //  FIX average
         List<BigDecimal> scores = submissions.stream()
                 .map(Submissions::getScore)
-                .filter(s -> s != null)
+                .filter(Objects::nonNull)
                 .toList();
 
         BigDecimal avg = scores.isEmpty()

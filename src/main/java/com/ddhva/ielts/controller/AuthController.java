@@ -8,6 +8,7 @@ import com.ddhva.ielts.dto.refresh.req.RefreshTokenRequest;
 import com.ddhva.ielts.dto.refresh.res.RefreshTokenResponse;
 import com.ddhva.ielts.service.AuthService;
 import com.ddhva.ielts.service.exception.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Tag(name = "Auth Controller", description = "Auth Controller API")
 public class AuthController {
 
     private final AuthService authService;

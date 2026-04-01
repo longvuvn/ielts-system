@@ -6,6 +6,7 @@ import com.ddhva.ielts.dto.library.res.LibraryResponse;
 import com.ddhva.ielts.dto.pagination.Pagination;
 import com.ddhva.ielts.service.LibraryService;
 import com.ddhva.ielts.service.exception.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/library")
 @RequiredArgsConstructor
+@Tag(name = "Library Controller", description = "Library Controller API")
 public class LibraryController {
 
     private final LibraryService libraryService;
