@@ -1,5 +1,6 @@
 package com.ddhva.ielts.repositories;
 
+import com.ddhva.ielts.enums.VocabularyStatus;
 import com.ddhva.ielts.model.Vocabulary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,4 +34,6 @@ public interface VocabularyRepository extends JpaRepository <Vocabulary, UUID>{
     AND v.status = "ACTIVE"
 """)
     Optional<Vocabulary> findByWord(String word);
+
+    Optional<Vocabulary> findByWordIgnoreCaseAndStatus(String word, VocabularyStatus status);
 }
