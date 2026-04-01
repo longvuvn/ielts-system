@@ -110,7 +110,7 @@ public class FlashcardServiceImpl implements FlashcardService {
         UUID flashcardUUID = UUID.fromString(flashcardId);
         Flashcard flashcard = flashcardRepository.findById(flashcardUUID)
                 .orElseThrow(() -> new IllegalArgumentException("Flashcard not found"));
-        if(flashcard.getDeckVocabularies() != null && flashcard.getDeckVocabularies().isEmpty()){
+        if(flashcard.getDeckVocabularies() != null && !flashcard.getDeckVocabularies().isEmpty()){
             throw new DataIntegrityViolationException("Không thể xóa vì từ vựng còn tồn tại !!");
         }
         flashcardRepository.delete(flashcard);

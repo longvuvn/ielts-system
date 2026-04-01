@@ -10,6 +10,7 @@ import com.ddhva.ielts.dto.pagination.Pagination;
 import com.ddhva.ielts.dto.vocabulary.req.VocabularyRequest;
 import com.ddhva.ielts.dto.vocabulary.res.VocabularyResponse;
 import com.ddhva.ielts.enums.ReviewStatus;
+import com.ddhva.ielts.enums.VocabularyStatus;
 import com.ddhva.ielts.model.DeckVocabulary;
 import com.ddhva.ielts.model.Flashcard;
 import com.ddhva.ielts.model.Topic;
@@ -75,25 +76,34 @@ public class DeckVocabularyServiceImpl implements DeckVocabularyService {
         @Override
         public void createDeckVocabulary(DeckVocabularyRequest request) {
                 UUID flashcardUUID = UUID.fromString(request.getFlashcardId());
-                DeckVocabulary deckVocabulary = modelMapper.map(request, DeckVocabulary.class);
+                DeckVocabulary deckVocabulary = new DeckVocabulary();
+
                 Flashcard flashcard = flashcardRepository.findById(flashcardUUID)
-                                .orElseThrow(() -> new IllegalArgumentException("Flashcard not found"));
-                if (request.getVocabularyId() != null&& !request.getVocabularyId().isEmpty()) {
+                        .orElseThrow(() -> new IllegalArgumentException("Flashcard not found"));
+
+                if (request.getVocabularyId() != null && !request.getVocabularyId().isEmpty()) {
                         UUID vocabUUID = UUID.fromString(request.getVocabularyId());
                         Vocabulary vocabulary = vocabularyRepository.findById(vocabUUID)
                                 .orElseThrow(() -> new IllegalArgumentException("Vocabulary not found"));
                         deckVocabulary.setVocabulary(vocabulary);
-                }else {
-                        Topic topic = topicRepository.findByName("USER-CUSTOM")
-                                .orElseThrow(() -> new IllegalArgumentException("Topic not found"));
-                        DictionaryApiResponse apiResponse = dictionaryService.lookupWord(request.getWord());
-                        VocabularyRequest req = getVocabularyRequest(request, topic, apiResponse);
-                        VocabularyResponse response = vocabularyService.createVocabulary(req);
-                        Vocabulary newVocab = vocabularyRepository.findById(UUID.fromString(response.getId()))
-                                .orElseThrow(() -> new IllegalArgumentException("Failed to create vocabulary"));
+                } else {
+                Topic topic = topicRepository.findByName("USER-CUSTOM")
+                        .orElseThrow(() -> new IllegalArgumentException("Topic not found"));
 
-                        deckVocabulary.setVocabulary(newVocab);
-                }
+                Vocabulary vocabulary = vocabularyRepository
+                        .findByWordIgnoreCaseAndStatus(request.getWord(), VocabularyStatus.ACTIVE)
+                        .orElseGet(() -> {
+                                DictionaryApiResponse apiResponse = dictionaryService.lookupWord(request.getWord());
+                                VocabularyRequest req = getVocabularyRequest(request, topic, apiResponse);
+                                VocabularyResponse response = vocabularyService.createVocabulary(req);
+                                return vocabularyRepository.findById(UUID.fromString(response.getId()))
+                                        .orElseThrow(() -> new IllegalArgumentException("Failed to create vocabulary"));
+                        });
+
+                deckVocabulary.setVocabulary(vocabulary);
+                        deckVocabulary.setUserDefinition(request.getUserDefinition());
+        }
+
                 deckVocabulary.setFlashcard(flashcard);
                 deckVocabulary.setReviewStatus(ReviewStatus.NEW);
                 deckVocabulary.setLastReviewedAt(Instant.now());
