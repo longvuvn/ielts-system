@@ -2,6 +2,7 @@ package com.ddhva.ielts.model;
 
 
 import com.ddhva.ielts.enums.ExamStatus;
+import com.ddhva.ielts.enums.SkillType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,9 +30,12 @@ public class Exam extends Auditing{
     private ExamStatus status;
     private BigDecimal max_score;
     private Instant duration;
-
+    private String source_url;
     @OneToMany(mappedBy = "exam", fetch = FetchType.LAZY)
     private List<Submissions> submissions;
+
+    @Enumerated(EnumType.STRING)
+    private SkillType skillType;
 
     @OneToMany(mappedBy = "exam", fetch = FetchType.LAZY)
     private List<Section> sections;

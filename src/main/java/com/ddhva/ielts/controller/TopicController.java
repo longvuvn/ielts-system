@@ -3,6 +3,7 @@ package com.ddhva.ielts.controller;
 import com.ddhva.ielts.service.exception.ApiResponse;
 import com.ddhva.ielts.dto.topic.res.TopicResponse;
 import com.ddhva.ielts.service.TopicService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/topics")
 @RequiredArgsConstructor
+@Tag(name = "Topic Controller", description = "Topic Controller API")
 public class TopicController {
 
     private final TopicService topicService;
