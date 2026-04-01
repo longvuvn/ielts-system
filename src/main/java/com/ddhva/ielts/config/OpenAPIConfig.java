@@ -22,7 +22,7 @@ public class OpenAPIConfig {
         return GroupedOpenApi
                 .builder()
                 .group(apiDocs)
-                .packagesToScan("com.example.motorbike_be.controllers")
+                .packagesToScan("com.ddhva.ielts.controller")
                 .build();
     }
 
@@ -42,7 +42,7 @@ public class OpenAPIConfig {
                                 .bearerFormat("JWT")))
                 .security(List.of(new SecurityRequirement().addList(securitySchemeName)))
                 .info(new Info().title(title)
-                        .description("Service Motorbike API")
+                        .description("Service IELTS API")
                         .version(version)
                         .license(new License().name("Apache 2.0").url("https://springdoc.org")));
     }

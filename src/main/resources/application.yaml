@@ -65,7 +65,7 @@ Gemini:
 
 OpenAPI:
   service:
-    api-docs: motorbike-be-api
-    title: Motorbike-be API Document
+    api-docs: ielts-api
+    title: IELTS-be API Document
     version: 1.0.0
     server: ${SERVER_URL}
