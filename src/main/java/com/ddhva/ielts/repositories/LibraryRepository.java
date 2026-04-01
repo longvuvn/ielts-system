@@ -16,6 +16,7 @@ public interface LibraryRepository extends JpaRepository<Library, UUID> {
     SELECT l
     FROM Library l
     WHERE l.learner.id = :learnerId AND l.status = "ACTIVE"
+    ORDER BY l.createdAt ASC
 """)
     Optional<Page<Library>> findByLearner_Id(UUID learnerId, Pageable pageable);
 
