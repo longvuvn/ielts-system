@@ -62,3 +62,10 @@ Gemini:
   api:
     key: ${GEMINI_API_KEY}
     url: ${GEMINI_API_URL}
+
+OpenAPI:
+  service:
+    api-docs: motorbike-be-api
+    title: Motorbike-be API Document
+    version: 1.0.0
+    server: ${SERVER_URL}

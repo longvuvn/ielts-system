@@ -12,6 +12,7 @@ import com.ddhva.ielts.service.LibraryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -136,6 +137,9 @@ public class LibraryServiceImpl implements LibraryService {
         UUID libraryUUID = UUID.fromString(libraryId);
         Library library = libraryRepository.findById(libraryUUID)
                 .orElseThrow(() -> new IllegalArgumentException("Library not found"));
+        if (library.getFlashcards() != null && !library.getFlashcards().isEmpty()) {
+            throw new DataIntegrityViolationException("Không thể xóa thư viện khi Flashcard tồn tại!");
+        }
         libraryRepository.delete(library);
         log.info("Successfully deleted library {}", library.getId());
     }

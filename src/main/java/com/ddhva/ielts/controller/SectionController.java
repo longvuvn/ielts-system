@@ -4,6 +4,7 @@ package com.ddhva.ielts.controller;
 import com.ddhva.ielts.dto.passage.PassageResponse;
 import com.ddhva.ielts.service.SectionService;
 import com.ddhva.ielts.service.exception.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/section")
 @RequiredArgsConstructor
+@Tag(name = "Section Controller", description = "Section Controller API")
 public class SectionController {
     private final SectionService sectionService;
 

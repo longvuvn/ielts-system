@@ -12,6 +12,7 @@ import com.ddhva.ielts.service.FlashcardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -109,6 +110,9 @@ public class FlashcardServiceImpl implements FlashcardService {
         UUID flashcardUUID = UUID.fromString(flashcardId);
         Flashcard flashcard = flashcardRepository.findById(flashcardUUID)
                 .orElseThrow(() -> new IllegalArgumentException("Flashcard not found"));
+        if(flashcard.getDeckVocabularies() != null && flashcard.getDeckVocabularies().isEmpty()){
+            throw new DataIntegrityViolationException("Không thể xóa vì từ vựng còn tồn tại !!");
+        }
         flashcardRepository.delete(flashcard);
         log.info("Successfully deleted flashcard {}", flashcard.getId());
     }

@@ -6,6 +6,7 @@ import com.ddhva.ielts.dto.flashcard.res.FlashcardResponse;
 import com.ddhva.ielts.dto.pagination.Pagination;
 import com.ddhva.ielts.service.FlashcardService;
 import com.ddhva.ielts.service.exception.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/flashcard")
 @RequiredArgsConstructor
+@Tag(name = "Flashcard Controller", description = "Flashcard Controller API")
 public class FlashcardController {
 
     private final FlashcardService flashcardService;

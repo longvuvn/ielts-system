@@ -5,6 +5,7 @@ import com.ddhva.ielts.dto.learner.res.LearnerHistoryResponse;
 import com.ddhva.ielts.dto.learner.res.LearnerResponse;
 import com.ddhva.ielts.service.LearnerService;
 import com.ddhva.ielts.service.exception.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/learners")
 @RequiredArgsConstructor
+@Tag(name = "Learner Controller", description = "Learner Controller API")
 public class LearnerController {
 
     private final LearnerService learnerService;

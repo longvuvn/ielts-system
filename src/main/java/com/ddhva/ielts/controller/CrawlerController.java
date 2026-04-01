@@ -2,6 +2,7 @@ package com.ddhva.ielts.controller;
 
 import com.ddhva.ielts.service.ExamCrawlerService;
 import com.ddhva.ielts.service.exception.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/crawler")
 @RequiredArgsConstructor
+@Tag(name = "Crawler Controller", description = "Crawler Controller API")
 public class CrawlerController {
 
     private final ExamCrawlerService examCrawlerService;
