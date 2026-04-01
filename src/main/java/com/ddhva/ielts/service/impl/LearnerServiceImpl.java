@@ -43,7 +43,11 @@ public class LearnerServiceImpl implements LearnerService {
     public List<LearnerResponse> getAll() {
         List<Learner> learners = learnerRepository.findAll();
         return learners.stream()
-                .map(learner -> modelMapper.map(learner, LearnerResponse.class))
+                .map(learner -> {
+                    LearnerResponse response = modelMapper.map(learner, LearnerResponse.class);
+                    response.setRole(learner.getRole().getName());
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 

@@ -25,6 +25,7 @@ public class Vocabulary extends Auditing{
     private UUID id;
     private String word;
     private String ipa;
+    @Column(columnDefinition = "TEXT")
     private String definition;
     private String example;
     private String audio_url;
