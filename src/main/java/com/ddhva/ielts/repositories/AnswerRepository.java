@@ -2,6 +2,7 @@ package com.ddhva.ielts.repositories;
 
 import com.ddhva.ielts.model.Answer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -58,4 +59,17 @@ public interface AnswerRepository extends JpaRepository<Answer, UUID> {
         AND a.is_correct = true
     """)
     List<Answer> findCorrectAnswersByQuestionId(@Param("questionId") UUID questionId);
+
+    @Modifying
+    @Query("""
+    DELETE
+    FROM Answer a
+    WHERE a.question.id IN (
+        SELECT q.id FROM Question q
+        JOIN q.passage p
+        JOIN p.section s
+        WHERE s.exam.id = :examId
+    )
+    """)
+    void deleteAnswersByExamId(@Param("examId") UUID examId);
 }

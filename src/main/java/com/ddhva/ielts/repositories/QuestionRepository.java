@@ -2,6 +2,7 @@ package com.ddhva.ielts.repositories;
 
 import com.ddhva.ielts.model.Question;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -62,6 +63,18 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
     FROM Passage p
     JOIN Question q ON q.passage.id = p.id
     WHERE q.passage.id = :passageId
-""")
+    """)
     List<Question> findByPassage_IdWithPassage(@Param("passageId") UUID passageId);
+
+    @Modifying
+    @Query("""
+    DELETE
+    FROM Question q
+    WHERE q.passage.id IN (
+        SELECT p.id FROM Passage p
+        JOIN p.section s
+        WHERE s.exam.id = :examId
+    )
+    """)
+    void deleteQuestionsByExamId(@Param("examId") UUID examId);
 }

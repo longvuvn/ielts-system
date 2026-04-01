@@ -6,7 +6,7 @@ import com.ddhva.ielts.dto.pagination.Pagination;
 import com.ddhva.ielts.dto.section.res.SectionResponse;
 import com.ddhva.ielts.model.Exam;
 import com.ddhva.ielts.model.Section;
-import com.ddhva.ielts.repositories.ExamRepository;
+import com.ddhva.ielts.repositories.*;
 import com.ddhva.ielts.service.ExamService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -27,6 +27,10 @@ public class ExamServiceImpl implements ExamService {
 
     private final ExamRepository examRepository;
     private final ModelMapper modelMapper;
+    private final AnswerRepository answerRepository;
+    private final QuestionRepository questionRepository;
+    private final PassageRepository passageRepository;
+    private final SectionRepository sectionRepository;
 
     @Override
     public Pagination<ExamResponse> getAllExams(int page, int size) {
@@ -85,11 +89,16 @@ public class ExamServiceImpl implements ExamService {
         return modelMapper.map(exam, ExamResponse.class);
     }
 
+    @Transactional
     @Override
     public void deleteExam(String examId) {
         UUID examUUID = UUID.fromString(examId);
         Exam exam = examRepository.findById(examUUID)
                 .orElseThrow(() -> new IllegalArgumentException("Exam not found"));
-        examRepository.delete(exam);
+        answerRepository.deleteAnswersByExamId(exam.getId());
+        questionRepository.deleteQuestionsByExamId(exam.getId());
+        passageRepository.deletePassagesByExamId(exam.getId());
+        sectionRepository.deleteSectionsByExamId(exam.getId());
+        examRepository.deleteExamById(exam.getId());
     }
 }
