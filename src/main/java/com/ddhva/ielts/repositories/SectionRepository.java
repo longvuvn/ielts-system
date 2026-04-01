@@ -4,7 +4,9 @@ import com.ddhva.ielts.dto.passage.PassageResponse;
 import com.ddhva.ielts.model.Passage;
 import com.ddhva.ielts.model.Section;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,4 +21,12 @@ public interface SectionRepository extends JpaRepository <Section, UUID>{
         WHERE p.section.id = :sectionId
     """)
     Optional<List<Passage>> findByIdWithPassage(UUID sectionId);
+
+    @Modifying
+    @Query("""
+    DELETE
+    FROM Section s
+    WHERE s.exam.id = :examId
+    """)
+    void deleteSectionsByExamId(@Param("examId") UUID examId);
 }
