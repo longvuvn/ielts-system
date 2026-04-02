@@ -13,6 +13,22 @@ ielts-system/
 │   └── wrapper/
 ├── src/
 │   ├── main/
+│   │   └── java/
+│   │       └── com/
+│   │           └── ddhva/
+│   │               └── ielts/
+│   │                   ├── config/
+│   │                   ├── controller/
+│   │                   ├── dto/
+│   │                   ├── enums/
+│   │                   ├── model/
+│   │                   ├── repositories/
+│   │                   ├── service/
+│   │                   │   ├── crawler/
+│   │                   │   ├── exception/
+│   │                   │   └── impl/
+│   │                   ├── util/
+│   │                   └── IeltsApplication.java
 │   └── test/
 └── uploads/
     └── avatars/
@@ -20,7 +36,7 @@ ielts-system/
 
 ## Description
 
-**ielts-system** is a backend project, most likely a Java Spring Boot application (based on the presence of `pom.xml` and Maven wrapper files). It is designed to support IELTS-related functionalities, possibly as an API or service for the front-end.
+**ielts-system** is a backend project, built with Java (Spring Boot), designed to support IELTS-related functionalities. The project follows a clean, modular package structure for scalability and maintainability.
 
 ## How to Run
 
@@ -37,5 +53,6 @@ ielts-system/
 ## Main Features
 
 - Java backend with Maven build system
-- Organized source and test directories
+- Clean, modular package structure (config, controller, dto, enums, model, repositories, service, util)
+- Service layer with submodules: crawler, exception, impl
 - Uploads directory for storing files (e.g., avatars)
