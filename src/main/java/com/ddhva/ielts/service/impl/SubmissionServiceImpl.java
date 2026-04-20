@@ -54,8 +54,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found"));
 
-        Submissions submissions = modelMapper.map(submissionRequest, Submissions.class);
-
+        Submissions submissions = new Submissions();
         submissions.setLearner(learner);
         submissions.setExam(exam);
         submissions.setStatus(SubmissionStatus.ACTIVE);
@@ -69,15 +68,31 @@ public class SubmissionServiceImpl implements SubmissionService {
         BigDecimal totalScore = calculateScore(submissionRequest, submissions, submissionAnswers);
 
         submissions.setScore(totalScore);
+        submissions.setSubmissionAnswers(submissionAnswers);
         submissions = submissionRepository.save(submissions);
 
         SubmissionResponse response = modelMapper.map(submissions, SubmissionResponse.class);
+        
+        // Manual mapping for fields that might not match naming conventions
+        response.setLearnerId(learnerId.toString());
+        response.setExamId(examId.toString());
+        response.setTotalQuestions(String.valueOf(submissions.getTotalQuestions()));
+        response.setCorrectAnswer(String.valueOf(submissions.getCorrectQuestions()));
+        response.setFailedAnswer(String.valueOf(submissions.getFailedQuestions()));
+        response.setScore(submissions.getScore().toString());
+        response.setCompleted_At(submissions.getCompletedAt().toString());
+        response.setStarted_At(submissions.getStartTime().toString());
 
         if (response.getSubmissionAnswers() != null) {
-            for (SubmissionAnswerResponse ans : response.getSubmissionAnswers()) {
-
-                if (ans.getWritingFeedback() == null && ans.getAnswerOption() != null) {
-                    ans.setWritingFeedback(parseFeedback(ans.getAnswerOption()));
+            for (int i = 0; i < submissionAnswers.size(); i++) {
+                SubmissionAnswer entity = submissionAnswers.get(i);
+                SubmissionAnswerResponse resAns = response.getSubmissionAnswers().get(i);
+                
+                resAns.setIs_correct(String.valueOf(entity.getIsCorrect()));
+                resAns.setQuestion_id(entity.getQuestion().getId().toString());
+                
+                if (entity.getQuestion().getType() == QuestionType.WRITING && entity.getWritingFeedback() != null) {
+                    resAns.setWritingFeedback(parseFeedback(entity.getWritingFeedback()));
                 }
             }
         }
@@ -113,21 +128,28 @@ public class SubmissionServiceImpl implements SubmissionService {
             submissionAnswer.setQuestion(question);
             submissionAnswer.setAnswerText(answerRequest.getAnswerText());
             submissionAnswer.setAnswerOption(answerRequest.getAnswerQuestion());
+            
             if (question.getType() == QuestionType.WRITING) {
                 WritingRequest writingRequest = new WritingRequest();
+                writingRequest.setQuestionId(questionId.toString());
+                writingRequest.setAnswerText(answerRequest.getAnswerText());
+                
                 WritingFeedbackResponse feedback = writingGradingService.grade(writingRequest);
                 BigDecimal band = feedback.getBand() != null
                         ? feedback.getBand()
                         : BigDecimal.ZERO;
-                band = band.multiply(BigDecimal.valueOf(2))
+                
+                // Original logic: doubling the band for scoring
+                BigDecimal doubledBand = band.multiply(BigDecimal.valueOf(2))
                         .setScale(0, RoundingMode.HALF_UP);
-                submissionAnswer.setScore(band);
-                submissionAnswer.setIs_correct(band.compareTo(BigDecimal.valueOf(5.0)) >= 0);
+                
+                submissionAnswer.setScore(doubledBand);
+                submissionAnswer.setIsCorrect(doubledBand.compareTo(BigDecimal.valueOf(5.0)) >= 0);
                 submissionAnswer.setWritingFeedback(serializeFeedback(feedback));
 
-                totalScore = totalScore.add(band);
+                totalScore = totalScore.add(doubledBand);
 
-                if (submissionAnswer.getIs_correct()) correctCount++;
+                if (submissionAnswer.getIsCorrect()) correctCount++;
                 else failedCount++;
             }
             else {
@@ -135,7 +157,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
                 boolean isCorrect = isAnswerCorrect(answerRequest, correctAnswers);
 
-                submissionAnswer.setIs_correct(isCorrect);
+                submissionAnswer.setIsCorrect(isCorrect);
 
                 submissionAnswer.setScore(isCorrect
                         ? (question.getScore() != null ? question.getScore() : BigDecimal.ONE)
@@ -163,7 +185,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         try {
             return objectMapper.writeValueAsString(feedback);
         } catch (Exception e) {
-            return feedback.getOverallFeedback();
+            return "{\"overallFeedback\":\"" + feedback.getOverallFeedback() + "\"}";
         }
     }
 
@@ -171,7 +193,9 @@ public class SubmissionServiceImpl implements SubmissionService {
         try {
             return objectMapper.readValue(json, WritingFeedbackResponse.class);
         } catch (Exception e) {
-            return null;
+            WritingFeedbackResponse fallback = new WritingFeedbackResponse();
+            fallback.setOverallFeedback(json);
+            return fallback;
         }
     }
 
@@ -180,11 +204,38 @@ public class SubmissionServiceImpl implements SubmissionService {
         String answerText   = normalizeText(req.getAnswerText());
         String answerOption = normalizeText(req.getAnswerQuestion());
 
-        for (Answer answer : correctAnswers) {
-            String correct = normalizeText(answer.getContent());
+        if (answerText.isEmpty() && answerOption.isEmpty()) {
+            return false;
+        }
 
-            if (answerOption.contains(correct) || answerText.contains(correct)) {
+        for (Answer answer : correctAnswers) {
+            // 1. Kiểm tra theo ID (nếu answerText hoặc answerOption là UUID và khớp với ID của đáp án đúng)
+            String answerIdStr = answer.getId().toString();
+            if (req.getAnswerText() != null && req.getAnswerText().equalsIgnoreCase(answerIdStr)) {
                 return true;
+            }
+            if (req.getAnswerQuestion() != null && req.getAnswerQuestion().equalsIgnoreCase(answerIdStr)) {
+                return true;
+            }
+
+            // 2. Kiểm tra theo Text
+            String correct = normalizeText(answer.getContent());
+            if (correct.isEmpty()) continue;
+
+            // So khớp trực tiếp
+            if (answerOption.equals(correct) || answerText.equals(correct)) {
+                return true;
+            }
+
+            // Hỗ trợ trường hợp đáp án trong DB chứa nhiều phương án cách nhau bởi dấu /
+            if (correct.contains("/")) {
+                String[] parts = correct.split("/");
+                for (String part : parts) {
+                    String normalizedPart = normalizeText(part);
+                    if (answerOption.equals(normalizedPart) || answerText.equals(normalizedPart)) {
+                        return true;
+                    }
+                }
             }
         }
 
