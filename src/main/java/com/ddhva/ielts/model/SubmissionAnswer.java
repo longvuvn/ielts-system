@@ -1,6 +1,7 @@
 package com.ddhva.ielts.model;
 
 
+import com.ddhva.ielts.service.crawler.BooleanToStringConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,13 +22,18 @@ public class SubmissionAnswer {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    private Boolean is_correct;
+
+    @Convert(converter = BooleanToStringConverter.class)
+    @Column(name = "is_correct", columnDefinition = "VARCHAR(5)")
+    private Boolean isCorrect;
+
     private BigDecimal score;
 
     @Column(columnDefinition = "TEXT")
     private String answerText;
 
     @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String answerOption;
 
     @Column(columnDefinition = "TEXT")

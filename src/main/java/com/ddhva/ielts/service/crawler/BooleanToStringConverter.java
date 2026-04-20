@@ -4,12 +4,12 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 
-@Converter
+@Converter(autoApply = false)
 public class BooleanToStringConverter implements AttributeConverter<Boolean, String> {
     @Override
     public String convertToDatabaseColumn(Boolean attribute) {
         if (attribute == null) return null;
-        return attribute ? "true" : "false";
+        return attribute.toString();
     }
 
     @Override
